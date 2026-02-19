@@ -1,0 +1,40 @@
+# Virtual environments
+venv/
+env/
+.env/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Generated files
+requirements.fixed.txt
+
+# Environment variables (never commit secrets)
+.env
+.env.local
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Test cache
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
