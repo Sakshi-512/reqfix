@@ -14,7 +14,7 @@ from typing import Optional
 # Regex to match a valid requirement line like:
 # flask>=2.0.0 or requests==2.28.1 or numpy
 REQUIREMENT_PATTERN = re.compile(
-    r"^(?P<name>[A-Za-z0-9_\-]+)"       # package name
+    r"^(?P<name>[A-Za-z0-9_.\-]+)"      # package name (dots allowed, e.g. zope.interface)
     r"(?P<specifier>[><=!~^,\s\d\.\*]*)?" # optional version specifier
     r"(?:\s*#.*)?$"                        # optional inline comment
 )

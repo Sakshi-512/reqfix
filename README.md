@@ -2,9 +2,9 @@
 
 > Fix your Python dependency conflicts automatically.
 
-[![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://python.org)
+[![Python](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![PyPI](https://img.shields.io/badge/pypi-coming%20soon-orange.svg)]()
+[![PyPI version](https://img.shields.io/pypi/v/reqfix.svg)](https://pypi.org/project/reqfix/)
 
 ---
 
@@ -58,7 +58,7 @@ cd reqfix
 pip install -e .
 ```
 
-> 💡 Install globally (outside any virtualenv) so `reqfix` is available in every project.
+> Reqfix installs packages into the **Python environment it is run from** (system Python, a virtualenv, or a conda env). Run it from the environment where you want dependencies installed.
 
 ---
 

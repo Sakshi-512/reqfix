@@ -20,7 +20,7 @@ from core.parser import RequirementsParser
 from core.resolver import DependencyResolver
 from core.fixer import Fixer
 from core.installer import Installer
-from core.verifier import Verifier
+from core.verifier import Verifier, VerificationResult
 
 
 # Single shared console instance for all output
@@ -49,7 +49,7 @@ def _run_analysis(filepath: str):
     """
     Shared logic used by all three commands:
     parse → resolve → fix.
-    Returns (suggestions, resolved_packages) tuple.
+    Returns (suggestions, resolved_packages, verification) tuple.
     """
     # Step 1: Parse
     try:
@@ -105,10 +105,14 @@ def _run_analysis(filepath: str):
             "but manual review may be needed.[/dim]\n"
         )
 
-    return suggestions, resolved_packages
+    return suggestions, resolved_packages, verification
 
 
-def _print_report(suggestions, resolved_packages) -> None:
+def _print_report(
+    suggestions,
+    resolved_packages,
+    verification: VerificationResult,
+) -> None:
     """Print a detailed conflict + fix report table."""
 
     table = Table(
@@ -156,11 +160,18 @@ def _print_report(suggestions, resolved_packages) -> None:
     console.print()
 
     # Summary line
-    console.print(
-        f"  [bold red]💥 Conflicts: {conflicts}[/bold red]   "
-        f"[bold yellow]📌 Unpinned: {unpinned}[/bold yellow]   "
-        f"[bold green]✅ Healthy: {healthy}[/bold green]"
-    )
+    if verification.success:
+        console.print(
+            f"  [bold red]💥 Conflicts: {conflicts}[/bold red]   "
+            f"[bold yellow]📌 Unpinned: {unpinned}[/bold yellow]   "
+            f"[bold green]✅ Healthy: {healthy}[/bold green]"
+        )
+    else:
+        console.print(
+            f"  [bold red]💥 Conflicts: {conflicts}[/bold red]   "
+            f"[bold yellow]📌 Unpinned: {unpinned}[/bold yellow]   "
+            f"[bold yellow]⚠️ Cross-package conflicts: yes (see above)[/bold yellow]"
+        )
     console.print()
 
 
@@ -202,17 +213,22 @@ def analyze(file: str) -> None:
     _print_banner()
     console.print("[bold]🔍 Analyzing dependencies...[/bold]\n")
 
-    suggestions, resolved_packages = _run_analysis(file)
-    _print_report(suggestions, resolved_packages)
+    suggestions, resolved_packages, verification = _run_analysis(file)
+    _print_report(suggestions, resolved_packages, verification)
 
     conflicts = sum(1 for s in suggestions if s.was_conflict)
     if conflicts > 0:
         console.print(
             f"[yellow]💡 Run [bold]reqfix fix[/bold] to generate a fixed requirements file.[/yellow]"
         )
-    else:
+    elif verification.success:
         console.print(
             "[green]🎉 No conflicts found! Run [bold]reqfix fix[/bold] to pin all versions safely.[/green]"
+        )
+    else:
+        console.print(
+            "[yellow]⚠️ Cross-package conflicts detected — review the messages above "
+            "before installing.[/yellow]"
         )
 
 
@@ -242,8 +258,8 @@ def fix(file: str, output: str) -> None:
     _print_banner()
     console.print("[bold]🔧 Generating fixed requirements...[/bold]\n")
 
-    suggestions, resolved_packages = _run_analysis(file)
-    _print_report(suggestions, resolved_packages)
+    suggestions, resolved_packages, verification = _run_analysis(file)
+    _print_report(suggestions, resolved_packages, verification)
 
     # Write fixed file
     fixer = Fixer()
@@ -294,8 +310,15 @@ def install(file: str, output: str) -> None:
     _print_banner()
     console.print("[bold]🚀 Fixing and installing dependencies...[/bold]\n")
 
-    suggestions, resolved_packages = _run_analysis(file)
-    _print_report(suggestions, resolved_packages)
+    suggestions, resolved_packages, verification = _run_analysis(file)
+    _print_report(suggestions, resolved_packages, verification)
+
+    if not verification.success:
+        if not click.confirm(
+            "Verification found conflicts. Install anyway?",
+            default=False,
+        ):
+            raise SystemExit(0)
 
     # Write fixed file first
     fixer = Fixer()

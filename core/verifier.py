@@ -122,7 +122,6 @@ class Verifier:
                     "-r", tmp_path,
                     "--dry-run",            # nothing gets installed
                     "--quiet",              # reduce noise
-                    "--report", "-",        # output report to stdout
                 ],
                 capture_output=True,
                 text=True,
@@ -130,14 +129,12 @@ class Verifier:
             )
 
             full_output = result.stdout + result.stderr
-            conflicts = self._parse_conflicts(full_output)
-
-            # pip returns exit code 1 if resolution fails
             success = result.returncode == 0
 
-            # If pip succeeded but we found conflict keywords, still flag it
-            if conflicts and success:
-                success = False
+            if success:
+                conflicts = []
+            else:
+                conflicts = self._parse_conflicts(result.stderr)
 
             return VerificationResult(
                 success=success,

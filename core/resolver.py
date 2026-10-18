@@ -48,7 +48,7 @@ class PyPIClient:
     def __init__(self) -> None:
         # Reuse the same HTTP session for performance (connection pooling)
         self.session = requests.Session()
-        self.session.headers.update({"User-Agent": "reqfix/1.0.0"})
+        self.session.headers.update({"User-Agent": "reqfix/0.1.0"})
 
     def fetch_package_data(self, package_name: str) -> dict:
         """
